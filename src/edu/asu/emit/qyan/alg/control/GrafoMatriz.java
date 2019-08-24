@@ -1,0 +1,223 @@
+package edu.asu.emit.qyan.alg.control;
+
+import java.util.ArrayList;
+
+public class GrafoMatriz {
+
+	int nodos;
+	Enlace[][] grafo;
+	int[] cadenaVertices;
+
+	GrafoMatriz() {
+
+
+	}
+
+	GrafoMatriz(int[] serieNodos) {
+		cadenaVertices = new int[serieNodos.length];
+		for (int i = 0; i < serieNodos.length; i++) {
+			cadenaVertices[i] = serieNodos[i];
+		}
+		nodos = serieNodos.length;
+		//	System.out.println(nodos.length);
+		grafo = new Enlace[serieNodos.length][serieNodos.length];
+	}
+
+	public void InicializarGrafo(Enlace[][] grafo) {
+
+		for (int x = 0; x < grafo.length; x++) {
+			for (int y = 0; y < grafo[x].length; y++) {
+				grafo[x][y] = new Enlace(0, 0, 0, 5);
+
+				for (int k = 0; k < grafo[x][y].listafs.length; k++) {
+
+					grafo[x][y].listafs[k] = new FrecuenciaSlot(0, 0, 0);
+				}
+
+			}
+		}
+	}
+
+	public void agregarRuta(int origen, int destino, int distancia, int tiempo, int cantfs) {
+		//	System.out.println(origen);
+		//	System.out.println(destino);
+		int n1 = posicionNodo(origen);
+		//	System.out.print(n1);
+
+		int n2 = posicionNodo(destino);
+		grafo[n1][n2].distancia = distancia;
+		grafo[n1][n2].tiempo = tiempo;
+		grafo[n1][n2].cantfs = cantfs;
+
+		grafo[n2][n1].distancia = distancia;
+		grafo[n2][n1].tiempo = tiempo;
+		grafo[n2][n1].cantfs = cantfs;
+
+	}
+
+	public int posicionNodo(int nodo) {
+		for (int i = 0; i < cadenaVertices.length; i++) {
+			if (cadenaVertices[i] == nodo) return i;
+		}
+		return -1;
+	}
+
+	public void restar() {
+		int i, j, k;
+		int id;
+
+		for (i = 0; i < this.grafo.length; i++) {
+			for (j = 0; j < this.grafo.length; j++){
+				for (k = 0; k < this.grafo[i][j].listafs.length; k++){
+					id = this.grafo[i][j].listafs[k].id;
+
+					// para vaciar los lugares ocupados por la conexion
+					if (this.grafo[i][j].listafs[k].tiempo - 1 == 0){
+						while (this.grafo[i][j].listafs[k].id == id && k != this.grafo[i][j].listafs.length+1){
+							this.grafo[i][j].listafs[k].id = 0;
+							this.grafo[i][j].listafs[k].tiempo = 0;
+							this.grafo[i][j].listafs[k].libreOcupado = 0;
+							k++;
+							if ( k >= this.grafo[i][j].listafs.length) break;
+						}
+						// para restar uno al tiempo de la conexion
+					} else if (this.grafo[i][j].listafs[k].tiempo - 1 > 0) {
+						while (this.grafo[i][j].listafs[k].id == id){
+							this.grafo[i][j].listafs[k].tiempo--;
+							k++;
+							if ( k >= this.grafo[i][j].listafs.length) break;
+						}
+					}
+
+				}
+			}
+		}
+	}
+
+	public boolean verificar_conexion(int origen, Integer id, int cantfs) {
+
+		int i;
+		int long_grafo = this.grafo.length;
+		FrecuenciaSlot[] concatenado;
+		concatenado = new FrecuenciaSlot[this.grafo[origen][origen].listafs.length];
+		String conexiones = null;
+		//busca la ubicacion en la matriz de esa conexion
+		for (i = 0; i < long_grafo; i++){
+			if (this.grafo[origen][i].ids.contains(id)){
+				i=long_grafo;
+
+				// se busca el camino que recorre la conexion
+				for (int j = 0; j < this.grafo[origen][i].enlace.size(); j++){
+					String id1 = this.grafo[origen][i].enlace.get(j).substring(0,1);
+					if (id.toString().equals(id1)){
+						j=this.grafo[origen][i].enlace.size();
+						conexiones = this.grafo[origen][i].enlace.get(j).substring(2);
+
+						// se van a concatenar los vectores del camino de la conexion
+						for (int k = 0; k < conexiones.length(); k=k+2) {
+							char origen1 = conexiones.charAt(k);
+							char destino1 = conexiones.charAt(k + 2);
+							for (int p = 0; p < concatenado.length; p++)
+								concatenado[p] = this.grafo[origen1][destino1].listafs[p];
+						}
+					}
+				}
+			}
+
+		}
+		if(i == long_grafo && concatenado[0] == null) return true;
+		//concatenado[] es el vector para ver si la conexion nueva entra
+		boolean bandera = true;
+		int inicio = 0;
+		int longitud = 0;
+		//se busca el lugar de la conexion y se encuentran los extremos
+		for (int p = 0; p < concatenado.length; p++){
+			if (concatenado[p].id == id){
+				while(bandera){
+					inicio = p;
+					bandera = false;
+				}
+				longitud++;
+			}
+		}
+
+		int contador_izq = 0;
+		int contador_der = 0;
+		int verificador_izq = 0;
+		int verificador_der = 0;
+
+		bandera = true;
+		while (bandera){
+
+			// en la variable contador vamos a saber cuantos espacios libres hay para la conexion
+			if(verificador_der == 1 && verificador_izq == 1) bandera = false;
+			for (int p = 1; p< concatenado.length; p++){
+				if (concatenado[inicio - p].libreOcupado == 0 && verificador_izq == 0)
+					contador_izq++;
+				else verificador_izq = 1;
+				if (concatenado[longitud + p].libreOcupado == 0 && verificador_der == 0)
+					contador_der++;
+				else verificador_der = 1;
+			}
+		}
+
+		//vamos a calcular cuantos slots de cada lado se van a asignar
+        int long_conexion = longitud - inicio;
+		int espacios_necesarios = cantfs - long_conexion;
+		int derecha = 0;
+		int izquierda = 0;
+
+		//en las variables izquierda y derecha se van a guardar cuantos lugares se van a usar para cada lado
+		while (izquierda+derecha < espacios_necesarios){
+        	if(espacios_necesarios > 0 && contador_izq > 0) {
+        		izquierda++;
+        		contador_izq--;
+        		espacios_necesarios--;
+			}
+			if(espacios_necesarios > 0 && contador_der > 0) {
+				derecha++;
+				contador_der--;
+				espacios_necesarios--;
+			}
+		}
+
+
+
+        //vamos a ver si entra la conexion nueva y vamos a asignar
+		int espacios = long_conexion + contador_der + contador_izq;
+		int h = 1;
+		boolean cab = true;
+		if (cantfs < espacios) {
+			while (cantfs > long_conexion) {
+				// se van a asignar los nuevos lugares al camino
+				for (int k = 0; k < conexiones.length(); k = k + 2) {
+					char origen1 = conexiones.charAt(k);
+					char destino1 = conexiones.charAt(k + 2);
+					while(izquierda+derecha > 0){
+						if (cab) {
+							cab = false;
+							this.grafo[origen1][destino1].listafs[inicio - h].libreOcupado = 1;
+							this.grafo[origen1][destino1].listafs[inicio - h].id = this.grafo[origen1][destino1].listafs[inicio].id;
+							this.grafo[origen1][destino1].listafs[inicio - h].tiempo = this.grafo[origen1][destino1].listafs[inicio].tiempo;
+							izquierda--;
+						} else {
+							cab = true;
+							this.grafo[origen1][destino1].listafs[longitud + h].libreOcupado = 1;
+							this.grafo[origen1][destino1].listafs[longitud + h].id = this.grafo[origen1][destino1].listafs[inicio].id;
+							this.grafo[origen1][destino1].listafs[longitud + h].tiempo = this.grafo[origen1][destino1].listafs[inicio].tiempo;
+							derecha--;
+						}
+						if (cab) {
+							h++;
+						}
+					}
+				}
+			}
+		}
+		else{
+			System.out.println("la conexion no entra");
+		}
+		return true;
+
+	}
+}
