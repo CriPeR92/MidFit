@@ -69,7 +69,7 @@ public class Aplicacion {
 
 					//funcion para verificar si la conexion es nueva o sera modificada
 					boolean flag = false;
-					while (!flag){
+					while (!flag) {
 						flag = true;
 						g.verificar_conexion(origen, id, fs);
 					}

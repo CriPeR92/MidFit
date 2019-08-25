@@ -100,31 +100,35 @@ public class GrafoMatriz {
 		int long_grafo = this.grafo.length;
 		FrecuenciaSlot[] concatenado;
 		concatenado = new FrecuenciaSlot[this.grafo[origen][origen].listafs.length];
-		String conexiones = null;
+		String[] conexiones = null;
+
 		//busca la ubicacion en la matriz de esa conexion
 		for (i = 0; i < long_grafo; i++){
 			if (this.grafo[origen][i].ids.contains(id)){
-				i=long_grafo;
+				//i=long_grafo; para terminar el for
 
 				// se busca el camino que recorre la conexion
 				for (int j = 0; j < this.grafo[origen][i].enlace.size(); j++){
-					String id1 = this.grafo[origen][i].enlace.get(j).substring(0,1);
+					String[] variables = this.grafo[origen][i].enlace.get(j).split(",");
+					String id1 = variables[0];
 					if (id.toString().equals(id1)){
-						j=this.grafo[origen][i].enlace.size();
-						conexiones = this.grafo[origen][i].enlace.get(j).substring(2);
+//						j=this.grafo[origen][i].enlace.size(); PARA TERMINAR EL FOR
+						conexiones = variables;
 
 						// se van a concatenar los vectores del camino de la conexion
-						for (int k = 0; k < conexiones.length(); k=k+2) {
-							char origen1 = conexiones.charAt(k);
-							char destino1 = conexiones.charAt(k + 2);
-							for (int p = 0; p < concatenado.length; p++)
+						for (int k = 1; k < conexiones.length-1; k++) {
+							int origen1 = Integer.parseInt(conexiones[k]);
+							int destino1 = Integer.parseInt(conexiones[k+1]);
+							for (int p = 0; p < concatenado.length; p++) {
 								concatenado[p] = this.grafo[origen1][destino1].listafs[p];
+							}
 						}
 					}
 				}
 			}
 
 		}
+		// IF PARA SALIR SI NO SE CUMPLIO O NO SE ENCONTRO
 		if(i == long_grafo && concatenado[0] == null) return true;
 		//concatenado[] es el vector para ver si la conexion nueva entra
 		boolean bandera = true;
@@ -149,25 +153,51 @@ public class GrafoMatriz {
 		bandera = true;
 		while (bandera){
 
-			// en la variable contador vamos a saber cuantos espacios libres hay para la conexion
-			if(verificador_der == 1 && verificador_izq == 1) bandera = false;
-			for (int p = 1; p< concatenado.length; p++){
-				if (concatenado[inicio - p].libreOcupado == 0 && verificador_izq == 0)
+			/**
+			 * en la variable contador vamos a saber cuantos espacios libres hay para la conexion
+			 * contador_izq = la cantidad de espacios a la izquierda
+			 * contador_der = la cantidad de espacios a la derecha
+			 */
+
+			for (int p = 1; p< concatenado.length; p++) {
+
+				if ((inicio-p) >= 0 && concatenado[inicio - p].libreOcupado == 0 && verificador_izq == 0) {
 					contador_izq++;
-				else verificador_izq = 1;
-				if (concatenado[longitud + p].libreOcupado == 0 && verificador_der == 0)
-					contador_der++;
-				else verificador_der = 1;
+				} else {
+					verificador_izq = 1;
+				}
+
+				if (p == 1) {
+					if (concatenado[(longitud + inicio)].libreOcupado == 0 && verificador_der == 0) {
+						contador_der++;
+					} else {
+						verificador_der = 1;
+					}
+				} else {
+					if ((longitud+inicio+(p-1)) < concatenado.length && concatenado[(longitud + inicio) + (p-1)].libreOcupado == 0 && verificador_der == 0) {
+						contador_der++;
+					} else {
+						verificador_der = 1;
+					}
+				}
+				if(verificador_der == 1 && verificador_izq == 1) {
+					bandera = false;
+					break;
+				}
 			}
 		}
 
-		//vamos a calcular cuantos slots de cada lado se van a asignar
-        int long_conexion = longitud - inicio;
-		int espacios_necesarios = cantfs - long_conexion;
+		/**
+		 * vamos a calcular cuantos slots de cada lado se van a asignar
+		 */
+		int long_conexion = longitud;
+		int espacios_necesarios = cantfs - longitud;
 		int derecha = 0;
 		int izquierda = 0;
 
-		//en las variables izquierda y derecha se van a guardar cuantos lugares se van a usar para cada lado
+		/**
+		 * en las variables izquierda y derecha se van a guardar cuantos lugares se van a usar para cada lado
+		 */
 		while (izquierda+derecha < espacios_necesarios){
         	if(espacios_necesarios > 0 && contador_izq > 0) {
         		izquierda++;
@@ -187,32 +217,46 @@ public class GrafoMatriz {
 		int espacios = long_conexion + contador_der + contador_izq;
 		int h = 1;
 		boolean cab = true;
-		if (cantfs < espacios) {
-			while (cantfs > long_conexion) {
-				// se van a asignar los nuevos lugares al camino
-				for (int k = 0; k < conexiones.length(); k = k + 2) {
-					char origen1 = conexiones.charAt(k);
-					char destino1 = conexiones.charAt(k + 2);
-					while(izquierda+derecha > 0){
+		if (cantfs == espacios) {
+			//while (cantfs > long_conexion) {
+			/**
+			 * se van a asignar los nuevos lugares al camino
+ 			 */
+
+				for (int k = 1; k < conexiones.length-1; k++) {
+					int izqFalso = izquierda;
+					int derFalso = derecha;
+					h = 1;
+					int origen1 = Integer.parseInt(conexiones[k]);
+					int destino1 = Integer.parseInt(conexiones[k+1]);
+					while(izqFalso+derFalso > 0){
 						if (cab) {
 							cab = false;
 							this.grafo[origen1][destino1].listafs[inicio - h].libreOcupado = 1;
 							this.grafo[origen1][destino1].listafs[inicio - h].id = this.grafo[origen1][destino1].listafs[inicio].id;
 							this.grafo[origen1][destino1].listafs[inicio - h].tiempo = this.grafo[origen1][destino1].listafs[inicio].tiempo;
-							izquierda--;
+							izqFalso--;
 						} else {
-							cab = true;
-							this.grafo[origen1][destino1].listafs[longitud + h].libreOcupado = 1;
-							this.grafo[origen1][destino1].listafs[longitud + h].id = this.grafo[origen1][destino1].listafs[inicio].id;
-							this.grafo[origen1][destino1].listafs[longitud + h].tiempo = this.grafo[origen1][destino1].listafs[inicio].tiempo;
-							derecha--;
+							if (h==1) {
+								cab = true;
+								this.grafo[origen1][destino1].listafs[longitud + inicio].libreOcupado = 1;
+								this.grafo[origen1][destino1].listafs[longitud + inicio].id = this.grafo[origen1][destino1].listafs[inicio].id;
+								this.grafo[origen1][destino1].listafs[longitud + inicio].tiempo = this.grafo[origen1][destino1].listafs[inicio].tiempo;
+								derFalso--;
+							} else {
+								cab = true;
+								this.grafo[origen1][destino1].listafs[(longitud + inicio) + (h-1)].libreOcupado = 1;
+								this.grafo[origen1][destino1].listafs[(longitud + inicio) + (h-1)].id = this.grafo[origen1][destino1].listafs[inicio].id;
+								this.grafo[origen1][destino1].listafs[(longitud + inicio) + (h-1)].tiempo = this.grafo[origen1][destino1].listafs[inicio].tiempo;
+								derFalso--;
+							}
 						}
 						if (cab) {
 							h++;
 						}
 					}
 				}
-			}
+			//}
 		}
 		else{
 			System.out.println("la conexion no entra");

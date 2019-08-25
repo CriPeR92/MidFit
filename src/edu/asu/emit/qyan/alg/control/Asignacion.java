@@ -59,7 +59,9 @@ public class Asignacion {
 				     g.grafo[n1][n2].listafs[mitad].tiempo = g.grafo[n1][n2].tiempo;
 				     g.grafo[n2][n1].listafs[mitad].libreOcupado = 1;
 				     g.grafo[n2][n1].listafs[mitad].tiempo = g.grafo[n2][n1].tiempo;
-					 if(contador == 0) {
+				     g.grafo[n1][n2].listafs[mitad].id = id;
+				     g.grafo[n2][n1].listafs[mitad].id = id;
+                       if(contador == 0) {
 					 	//concatenar y guardar el id de la conexion
 					 	g.grafo[n1][n2].enlace.add(id.toString() + ","+ nuevo_camino);
 					 	g.grafo[n1][n2].ids.add(id);
@@ -73,6 +75,8 @@ public class Asignacion {
 					   g.grafo[n1][n2].listafs[mitadizquierda].tiempo = g.grafo[n1][n2].tiempo;
 				       g.grafo[n2][n1].listafs[mitadizquierda].libreOcupado = 1;
 					   g.grafo[n2][n1].listafs[mitadizquierda].tiempo = g.grafo[n2][n1].tiempo;
+                       g.grafo[n1][n2].listafs[mitad].id = id;
+                       g.grafo[n2][n1].listafs[mitad].id = id;
 				   }  
 			       else if (x !=0 && (x%2)!=0) {
 			    	   mitadderecha++;
@@ -80,6 +84,8 @@ public class Asignacion {
 					   g.grafo[n1][n2].listafs[mitadderecha].tiempo = g.grafo[n1][n2].tiempo;
 					   g.grafo[n2][n1].listafs[mitadderecha].libreOcupado = 1;
 					   g.grafo[n2][n1].listafs[mitadderecha].tiempo = g.grafo[n2][n1].tiempo;
+                       g.grafo[n1][n2].listafs[mitad].id = id;
+                       g.grafo[n2][n1].listafs[mitad].id = id;
 				   }
 			   }		   
 	
